@@ -1,6 +1,8 @@
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Scanner {
 
@@ -72,6 +74,8 @@ public class Scanner {
                     while (isPeekingChar('\n')) {
                         advance();
                     }
+                } else if (match('*')) {
+                    multiLineComment();
                 } else {
                     addToken(TokenType.SLASH);
                 }
@@ -82,10 +86,16 @@ public class Scanner {
                 line++;
             case '"' ->
                 string();
-            default ->
-                Lox.error(line, "Unexpected character.");
+            default -> {
+                if (isDigit(c)) {
+                    number();
+                } else if (isAlpha(c)) {
+                    identifier();
+                } else {
+                    Lox.error(line, "Unexpected character.");
+                }
+            }
         }
-        // Ignore whitespace.
     }
 
     // Returns next character
@@ -122,8 +132,20 @@ public class Scanner {
         return source.charAt(current);
     }
 
+    private char peekNext() {
+        if (current + 1 >= source.length()) {
+            return '\0';
+        }
+
+        return source.charAt(current + 1);
+    }
+
     private boolean isPeekingChar(char c) {
         return peek() != c && !isAtEnd();
+    }
+
+    private boolean isPeekingNextChar(char c) {
+        return peekNext() != c && current + 1 < source.length();
     }
 
     private void string() {
@@ -145,5 +167,88 @@ public class Scanner {
 
         String value = source.substring(start + 1, current - 1);
         addToken(TokenType.STRING, value);
+    }
+
+    private void multiLineComment() {
+        while (isPeekingChar('*') && isPeekingNextChar('/')) {
+            if (peek() == '\n') {
+                line++;
+            }
+
+            advance();
+        }
+
+        if (isAtEnd()) {
+            Lox.error(line, "Open comment.");
+        }
+
+        // We've reached the end of the comment;
+        advance();
+        advance();
+    }
+
+    private boolean isDigit(char c) {
+        return c >= '0' && c <= '9';
+    }
+
+    private void number() {
+        while (isDigit(peek())) {
+            advance();
+        }
+
+        if (peek() == '.' && isDigit(peekNext())) {
+            advance();
+
+            while (isDigit(peek())) {
+                advance();
+            }
+        }
+
+        addToken(TokenType.NUMBER, source.substring(start, current));
+    }
+
+    private boolean isAlpha(char c) {
+        return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
+    }
+
+    private static final Map<String, TokenType> keywords;
+
+    static {
+        keywords = new HashMap<>();
+        keywords.put("and", TokenType.AND);
+        keywords.put("class", TokenType.CLASS);
+        keywords.put("else", TokenType.ELSE);
+        keywords.put("false", TokenType.FALSE);
+        keywords.put("for", TokenType.FOR);
+        keywords.put("fun", TokenType.FUN);
+        keywords.put("if", TokenType.IF);
+        keywords.put("nil", TokenType.NIL);
+        keywords.put("or", TokenType.OR);
+        keywords.put("print", TokenType.PRINT);
+        keywords.put("return", TokenType.RETURN);
+        keywords.put("super", TokenType.SUPER);
+        keywords.put("this", TokenType.THIS);
+        keywords.put("true", TokenType.TRUE);
+        keywords.put("var", TokenType.VAR);
+        keywords.put("while", TokenType.WHILE);
+    }
+
+    private void identifier() {
+        while (isAlphaNumeric(peek())) {
+            advance();
+        }
+
+        String text = source.substring(start, current);
+        TokenType type = keywords.get(text);
+
+        if (type == null) {
+            type = TokenType.IDENTIFIER;
+        }
+
+        addToken(type);
+    }
+
+    private boolean isAlphaNumeric(char c) {
+        return isAlpha(c) || isDigit(c);
     }
 }
