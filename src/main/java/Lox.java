@@ -1,3 +1,4 @@
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -7,6 +8,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 public class Lox {
+
     static boolean hadError = false;
 
     public static void main(String[] args) throws IOException {
@@ -25,17 +27,21 @@ public class Lox {
         run(new String(bytes, Charset.defaultCharset()));
 
         // Indicate an error in the exit code
-        if (hadError) System.exit(65);
+        if (hadError) {
+            System.exit(65);
+        }
     }
 
     private static void runPrompt() throws IOException {
         InputStreamReader input = new InputStreamReader(System.in);
         BufferedReader reader = new BufferedReader(input);
 
-        for (; ; ) {
+        for (;;) {
             System.out.print("> ");
             String line = reader.readLine();
-            if (line == null) break;
+            if (line == null) {
+                break;
+            }
             run(line);
             hadError = false;
         }

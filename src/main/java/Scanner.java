@@ -170,7 +170,7 @@ public class Scanner {
     }
 
     private void multiLineComment() {
-        while (isPeekingChar('*') && isPeekingNextChar('/')) {
+        while (isPeekingChar('*') || isPeekingNextChar('/')) {
             if (peek() == '\n') {
                 line++;
             }
