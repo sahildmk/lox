@@ -3,6 +3,10 @@ import java.util.List;
 
 class Parser {
 
+    private static class ParseError extends RuntimeException {
+
+    }
+
     private final List<Token> tokens;
     private int current = 0;
 
@@ -137,10 +141,46 @@ class Parser {
         }
 
         // Exception case
-        throw new RuntimeException();
+        throw error(peek(), "Expect expression.");
     }
 
-    private void consume(TokenType token, String message) {
+    private Token consume(TokenType token, String message) {
+        if (check(token)) {
+            return advance();
+        }
 
+        throw error(peek(), message);
+    }
+
+    private ParseError error(Token token, String message) {
+        Lox.error(token, message);
+
+        return new ParseError();
+    }
+
+    private void synchronize() {
+        advance();
+
+        while (!isAtEnd()) {
+            if (previous().type == TokenType.SEMICOLON) {
+                return;
+            }
+
+            switch (peek().type) {
+                case TokenType.CLASS, TokenType.FUN, TokenType.VAR, TokenType.FOR, TokenType.IF, TokenType.WHILE, TokenType.PRINT, TokenType.RETURN -> {
+                    return;
+                }
+            }
+
+            advance();
+        }
+    }
+
+    Expr parse() {
+        try {
+            return expression();
+        } catch (ParseError error) {
+            return null;
+        }
     }
 }
