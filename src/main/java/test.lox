@@ -1,15 +1,3 @@
-/* 
-
-
-
-this is a test
-multiline comment 
-
-
-
-*/
-
-
-class test {
-  var id = 1523
+if (5 + 10 == 15) {
+  
 }
