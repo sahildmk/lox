@@ -16,15 +16,24 @@ class Interpreter implements Expr.Visitor<Object> {
                     return (double) left + (double) right;
                 }
 
-                if (left instanceof String & right instanceof String) {
-                    return (String) left + (String) right;
+                if (left instanceof String && right instanceof Double) {
+                    return (String) left + String.valueOf(right);
+                }
+
+                if (left instanceof Double && right instanceof String) {
+                    return String.valueOf(left) + (String) right;
                 }
 
                 throw new RuntimeError(expr.operator,
-                        "Operands must be two numbers or two strings.");
+                        "Operands must be numbers or strings.");
             }
             case TokenType.SLASH -> {
                 checkNumberOperand(expr.operator, left, right);
+
+                if ((double) right == 0) {
+                    throw new RuntimeError(expr.operator, "Detected division by 0.");
+                }
+
                 return (double) left / (double) right;
             }
             case TokenType.STAR -> {
