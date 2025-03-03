@@ -204,7 +204,7 @@ public class Scanner {
             }
         }
 
-        addToken(TokenType.NUMBER, source.substring(start, current));
+        addToken(TokenType.NUMBER, Double.valueOf(source.substring(start, current)));
     }
 
     private boolean isAlpha(char c) {
